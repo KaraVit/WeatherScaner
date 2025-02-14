@@ -1,90 +1,87 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
-const App = () => {
+
+const WeatherApp = () => {
   const [city, setCity] = useState('');
   const [weather, setWeather] = useState(null);
   const [error, setError] = useState('');
-  const [lat, setLat] = useState(null);
-  const [lon, setLon] = useState(null);
 
-  const weatherApiKey = '3ac5d99f53f1d82b91bd8a002875cc92'; 
-  const geocodeApiUrl = 'https://nominatim.openstreetmap.org/search'; 
+  const apiKey = '3ac5d99f53f1d82b91bd8a002875cc92';
 
-  
-  const getCoordinates = async (cityName) => {
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        fetchWeatherByCoords(latitude, longitude);
+      },
+      () => setError('Не удалось получить геолокацию')
+    );
+  }, []);
+
+  const fetchWeatherByCoords = async (lat, lon) => {
     try {
-      const response = await axios.get(geocodeApiUrl, {
-        params: {
-          q: cityName,
-          format: 'json',
-          addressdetails: 1,
-        },
-      });
-      if (response.data.length > 0) {
-        const cityData = response.data[0];
-        const latitude = cityData.lat;
-        const longitude = cityData.lon;
-        setLat(latitude);
-        setLon(longitude);
-        setError('');
-        getWeather(latitude, longitude); 
-      } else {
-        setError('Город не найден');
-        setWeather(null);
-      }
-    } catch (err) {
-      setError('Ошибка при геокодировании');
+      const response = await axios.get(
+        `https://api.openweathermap.org/data/2.5/weather`,
+        {
+          params: { lat, lon, appid: apiKey, units: 'metric' },
+        }
+      );
+      setWeather(response.data);
+      setError('');
+    } catch {
+      setError('Ошибка загрузки данных');
     }
   };
 
-  
-  const getWeather = async (latitude, longitude) => {
+  const handleSearch = async () => {
+    if (!city) return;
     try {
-      const response = await axios.get('https://api.openweathermap.org/data/2.5/weather', {
-        params: {
-          lat: latitude,
-          lon: longitude,
-          appid: weatherApiKey,
-          units: 'metric', 
-        },
-      });
+      const response = await axios.get(
+        `https://api.openweathermap.org/data/2.5/weather`,
+        {
+          params: { q: city, appid: apiKey, units: 'metric' },
+        }
+      );
       setWeather(response.data);
       setError('');
-    } catch (err) {
-      setError('Ошибка: Невозможно получить данные о погоде');
+    } catch {
+      setError('Город не найден');
       setWeather(null);
     }
   };
 
-  const handleSearch = () => {
-    if (!city) return;
-    getCoordinates(city);
-  };
-
   return (
-    <div className="App">
-      <h1>Погода в вашем городе</h1>
-      <input
-        type="text"
-        value={city}
-        onChange={(e) => setCity(e.target.value)}
-        placeholder="Введите название города"
-      />
-      <button onClick={handleSearch}>Поиск</button>
-
-      {error && <p>{error}</p>}
-
-      {weather && (
-        <div>
-          <h2>{weather.name}, {weather.sys.country}</h2>
-          <p>Температура: {weather.main.temp} °C</p>
-          <p>Влажность: {weather.main.humidity} %</p>
-          <p>Скорость ветра: {weather.wind.speed} м/с</p>
+    <div className="container mt-5">
+      <div className="card p-4 shadow-lg">
+        <h1 className="text-center mb-4">Погода в вашем городе</h1>
+        <div className="input-group mb-3">
+          <input
+            type="text"
+            className="form-control"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            placeholder="Введите название города"
+          />
+          <button className="btn btn-primary" onClick={handleSearch}>
+            Поиск
+          </button>
         </div>
-      )}
+
+        {error && <p className="alert alert-danger">{error}</p>}
+
+        {weather && (
+          <div className="text-center">
+            <h2>{weather.name}, {weather.sys.country}</h2>
+            <p className="fs-4">🌡 Температура: {weather.main.temp} °C</p>
+            <p className="fs-5">💧 Влажность: {weather.main.humidity} %</p>
+            <p className="fs-5">💨 Скорость ветра: {weather.wind.speed} м/с</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
-export default App;
+export default WeatherApp;
