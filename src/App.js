@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
+import './App.css';
 
 const WeatherApp = () => {
   const [city, setCity] = useState('');
@@ -53,33 +53,54 @@ const WeatherApp = () => {
   };
 
   return (
-    <div className="container mt-5">
-      <div className="card p-4 shadow-lg">
-        <h1 className="text-center mb-4">Погода в вашем городе</h1>
-        <div className="input-group mb-3">
-          <input
-            type="text"
-            className="form-control"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            placeholder="Введите название города"
+    <div className="app-container">
+      {}
+      <aside className="sidebar">
+        <h2 className="logo">WeatherApp</h2>
+        <nav className="menu">
+          <ul>
+            <li><i className="bi bi-house-door"></i> Dashboard</li>
+            <li><i className="bi bi-map"></i> Map</li>
+            <li><i className="bi bi-bookmark"></i> Saved</li>
+            <li><i className="bi bi-calendar"></i> Calendar</li>
+            <li><i className="bi bi-gear"></i> Settings</li>
+          </ul>
+        </nav>
+      </aside>
+
+      {}
+      <main className="content">
+        {}
+        <header className="header">
+          <input 
+            type="text" 
+            className="search-bar" 
+            value={city} 
+            onChange={(e) => setCity(e.target.value)} 
+            placeholder="Введите город..." 
           />
-          <button className="btn btn-primary" onClick={handleSearch}>
-            Поиск
-          </button>
+          <button className="btn btn-primary" onClick={handleSearch}>Поиск</button>
+        </header>
+
+        {}
+        <div className="weather-card">
+          {error && <p className="alert alert-danger">{error}</p>}
+
+          {weather && (
+            <div className="weather-info">
+              <h2>{weather.name}, {weather.sys.country}</h2>
+              <img
+                className="weather-icon"
+                src={`https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`}
+                alt="Weather Icon"
+              />
+              <p>🌡 Температура: {weather.main.temp} °C</p>
+              <p>💧 Влажность: {weather.main.humidity} %</p>
+              <p>💨 Ветер: {weather.wind.speed} м/с</p>
+            </div>
+          )}
         </div>
-
-        {error && <p className="alert alert-danger">{error}</p>}
-
-        {weather && (
-          <div className="text-center">
-            <h2>{weather.name}, {weather.sys.country}</h2>
-            <p className="fs-4">🌡 Температура: {weather.main.temp} °C</p>
-            <p className="fs-5">💧 Влажность: {weather.main.humidity} %</p>
-            <p className="fs-5">💨 Скорость ветра: {weather.wind.speed} м/с</p>
-          </div>
-        )}
-      </div>
+      </main>
     </div>
   );
 };
